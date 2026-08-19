@@ -1,9 +1,6 @@
 name: Build llama.cpp with CUDA
 
 on:
-  schedule:
-    # Run daily at 00:00 UTC
-    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       force_build:
@@ -64,7 +61,7 @@ jobs:
           # Native runners — no QEMU. nvidia/cuda:*-cudnn-devel-ubuntu22.04 is
           # multi-arch on Docker Hub so the same build path runs on both.
           - { suffix: amd64, runs_on: ubuntu-latest }
-          - { suffix: arm64, runs_on: ubuntu-24.04-arm }
+          # - { suffix: arm64, runs_on: ubuntu-24.04-arm }
         include:
           - cuda_version: '12.8.1'
             cuda_version_short: '12.8'
@@ -73,6 +70,7 @@ jobs:
             # CPU arch, so the same list applies to both amd64 and arm64
             # builds. Relevant aarch64 GPU contexts (Grace Hopper, Grace
             # Blackwell, DGX Spark) are covered by sm_90 / sm_100 / sm_120.
+            # architectures: '75-virtual;80-virtual;86-virtual;89-virtual;90-virtual;100-virtual;120-virtual'
             architectures: '75-virtual;80-virtual;86-virtual;89-virtual;90-virtual;100-virtual;120-virtual'
     
     steps:
@@ -142,6 +140,7 @@ jobs:
               cmake -B build -S . \
                 -G Ninja \
                 -DGGML_CUDA=ON \
+                -DGGML_RPC=ON \
                 -DCMAKE_CUDA_ARCHITECTURES='${{ matrix.architectures }}' \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DBUILD_SHARED_LIBS=ON \
